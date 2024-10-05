@@ -51,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -60,6 +59,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -740,44 +740,6 @@ private fun DocumentContent(dataItem: DocumentUi) {
 }
 
 @Composable
-private fun IssuedDocument(dataItem: DocumentUi) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(SPACING_MEDIUM.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box {
-            WrapIcon(
-                iconData = AppIcons.Id,
-                customTint = MaterialTheme.colorScheme.primary
-            )
-            if (dataItem.documentHasExpired) {
-                IconWarningIndicator(
-                    backgroundColor = MaterialTheme.colorScheme.backgroundDefault
-                )
-            }
-        }
-        Box(
-            modifier = Modifier
-                .wrapContentWidth()
-                .height(28.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            ScalableText(
-                text = dataItem.documentName,
-                textStyle = MaterialTheme.typography.titleMedium.copy(
-                    color = MaterialTheme.colorScheme.textPrimaryDark
-                )
-            )
-        }
-        VSpacer.Small()
-        ExpirationInfo(dataItem)
-    }
-}
-
-@Composable
 private fun ExpirationInfo(
     document: DocumentUi,
 ) {
@@ -791,29 +753,31 @@ private fun ExpirationInfo(
         with(document) {
             when (documentIssuanceState) {
                 DocumentUiIssuanceState.Issued -> {
-                    if (documentHasExpired) {
-                        val annotatedText = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    fontStyle = textStyle.fontStyle,
-                                    color = MaterialTheme.colorScheme.warning
-                                )
-                            ) {
-                                append(stringResource(id = R.string.dashboard_document_has_expired_one))
+                    if (documentExpirationDateFormatted.isNotBlank()) {
+                        if (documentHasExpired) {
+                            val annotatedText = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        fontStyle = textStyle.fontStyle,
+                                        color = MaterialTheme.colorScheme.warning
+                                    )
+                                ) {
+                                    append(stringResource(id = R.string.dashboard_document_has_expired_one))
+                                }
+
+                                append(stringResource(id = R.string.dashboard_document_has_expired_two))
                             }
-
-                            append(stringResource(id = R.string.dashboard_document_has_expired_two))
+                            Text(text = annotatedText, style = textStyle)
+                        } else {
+                            Text(
+                                text = stringResource(id = R.string.dashboard_document_has_not_expired),
+                                style = textStyle
+                            )
                         }
-                        Text(text = annotatedText, style = textStyle)
-                    } else {
-                        Text(
-                            text = stringResource(id = R.string.dashboard_document_has_not_expired),
-                            style = textStyle
-                        )
-                    }
 
-                    //Expiration Date
-                    Text(text = documentExpirationDateFormatted, style = textStyle)
+                        //Expiration Date
+                        Text(text = documentExpirationDateFormatted, style = textStyle)
+                    }
                 }
 
                 DocumentUiIssuanceState.Pending -> {
@@ -864,22 +828,42 @@ private fun DashboardScreenPreview() {
                 documentIdentifier = DocumentIdentifier.PID,
                 documentExpirationDateFormatted = "30 Mar 2050",
                 documentHasExpired = false,
-                documentImage = "image1",
+                documentImage = "image0",
                 documentDetails = emptyList(),
                 documentIssuanceState = DocumentUiIssuanceState.Issued
             ),
             DocumentUi(
                 documentId = "1",
+                documentName = "National ID",
+                documentIdentifier = DocumentIdentifier.PID,
+                documentExpirationDateFormatted = "",
+                documentHasExpired = false,
+                documentImage = "image1",
+                documentDetails = emptyList(),
+                documentIssuanceState = DocumentUiIssuanceState.Issued
+            ),
+            DocumentUi(
+                documentId = "2",
+                documentName = "National ID",
+                documentIdentifier = DocumentIdentifier.PID,
+                documentExpirationDateFormatted = "",
+                documentHasExpired = true,
+                documentImage = "image2",
+                documentDetails = emptyList(),
+                documentIssuanceState = DocumentUiIssuanceState.Issued
+            ),
+            DocumentUi(
+                documentId = "3",
                 documentName = "Driving License",
                 documentIdentifier = DocumentIdentifier.MDL,
                 documentExpirationDateFormatted = "25 Dec 2050",
                 documentHasExpired = false,
-                documentImage = "image2",
+                documentImage = "image3",
                 documentDetails = emptyList(),
                 documentIssuanceState = DocumentUiIssuanceState.Pending
             ),
             DocumentUi(
-                documentId = "2",
+                documentId = "4",
                 documentName = "Other",
                 documentIdentifier = DocumentIdentifier.OTHER(
                     nameSpace = "",
@@ -887,18 +871,49 @@ private fun DashboardScreenPreview() {
                 ),
                 documentExpirationDateFormatted = "01 Jun 2020",
                 documentHasExpired = true,
-                documentImage = "image3",
+                documentImage = "image4",
                 documentDetails = emptyList(),
                 documentIssuanceState = DocumentUiIssuanceState.Pending
-            )
+            ),
+            DocumentUi(
+                documentId = "5",
+                documentName = "National ID",
+                documentIdentifier = DocumentIdentifier.PID,
+                documentExpirationDateFormatted = "30 Mar 2050",
+                documentHasExpired = false,
+                documentImage = "image5",
+                documentDetails = emptyList(),
+                documentIssuanceState = DocumentUiIssuanceState.Failed
+            ),
         )
         Content(
             context = context,
             state = State(
+                allowUserInteraction = true,
                 isLoading = false,
                 error = null,
                 userFirstName = "Jane",
-                documents = documents + documents
+                documents = documents,
+                isBottomSheetOpen = true,
+                sheetContent = DashboardBottomSheetContent.Options(
+                    listOf(
+                        ModalOptionUi(
+                            title = stringResource(R.string.dashboard_bottom_sheet_options_action_1),
+                            icon = AppIcons.Edit,
+                            event = Event.BottomSheet.Options.OpenChangeQuickPin
+                        ),
+                        ModalOptionUi(
+                            title = stringResource(R.string.dashboard_bottom_sheet_options_action_2),
+                            icon = AppIcons.QrScanner,
+                            event = Event.BottomSheet.Options.OpenScanQr
+                        ),
+                        ModalOptionUi(
+                            title = stringResource(R.string.dashboard_bottom_sheet_options_action_3),
+                            icon = AppIcons.OpenNew,
+                            event = Event.BottomSheet.Options.RetrieveLogs
+                        )
+                    )
+                )
             ),
             effectFlow = Channel<Effect>().receiveAsFlow(),
             onEventSend = {},

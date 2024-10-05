@@ -73,7 +73,7 @@ object TestsData {
     const val mockedDocUiNameSampleData = "Load Sample Documents"
     const val mockedNoUserFistNameFound = ""
     const val mockedNoUserBase64PortraitFound = ""
-    const val mockedNoExpirationDateFound = "-"
+    const val mockedNoExpirationDateFound = ""
     const val mockedFormattedExpirationDate = "30 Mar 2050"
     const val mockedDocumentHasExpired = false
     const val mockedUserAuthentication = false
@@ -89,6 +89,9 @@ object TestsData {
     const val mockedAgeVerificationNameSpace = "eu.europa.ec.eudi.pseudonym.age_over_18.1"
     const val mockedPhotoIdDocType = "org.iso.23220.2.photoid.1"
     const val mockedPhotoIdNameSpace = "org.iso.23220.2.photoid.1"
+
+    const val mockedUriPath1 = "eudi-wallet://example.com/path1"
+    const val mockedUriPath2 = "eudi-wallet://example.com/path2"
 
     val mockedValidReaderAuth = ReaderAuth(
         readerAuth = byteArrayOf(),
@@ -269,6 +272,20 @@ object TestsData {
         documentIssuanceState = DocumentUiIssuanceState.Issued,
     )
 
+    val mockedPendingPidUi = mockedFullPidUi.copy(
+        documentIssuanceState = DocumentUiIssuanceState.Pending
+    )
+
+    val mockedUnsignedPidUi = mockedFullPidUi.copy(
+        documentName = mockedPidDocName,
+        documentIssuanceState = DocumentUiIssuanceState.Pending,
+        documentIdentifier = DocumentIdentifier.OTHER(
+            nameSpace = "",
+            docType = mockedFullPidUi.documentIdentifier.docType
+        ),
+        documentExpirationDateFormatted = ""
+    )
+
     val mockedBasicPidUi = mockedFullPidUi.copy(
         documentDetails = listOf(
             DocumentDetailsUi.DefaultItem(
@@ -340,6 +357,10 @@ object TestsData {
         documentImage = "",
         documentDetails = emptyList(),
         documentIssuanceState = DocumentUiIssuanceState.Issued,
+    )
+
+    val mockedPendingMdlUi = mockedFullMdlUi.copy(
+        documentIssuanceState = DocumentUiIssuanceState.Pending
     )
 
     val mockedBasicMdlUi = mockedFullMdlUi.copy(
