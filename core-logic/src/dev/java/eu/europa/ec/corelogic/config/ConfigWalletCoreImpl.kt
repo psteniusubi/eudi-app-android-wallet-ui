@@ -92,7 +92,7 @@ internal class WalletCoreConfigImpl(
                             OpenId4VciManager.Config.ProofType.CWT
                         )
                     }
-                    .trustedReaderCertificates(R.raw.eudi_pid_issuer_ut)
+                    .trustedReaderCertificates(R.raw.root)
                     .build()
             }
             return _config!!
